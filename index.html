@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BD Pay - Official</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #f9fafb; margin: 0; padding-bottom: 90px; }
+        .header-bg { background: #006a4e; border-radius: 0 0 30px 30px; }
+        .card-white { background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .icon-box { 
+            width: 60px; height: 60px; margin: 0 auto 8px; 
+            background: #ffffff; border-radius: 15px; 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 28px;
+        }
+        .bkash-color { color: #e2136e; }
+        .nagad-color { color: #f7941d; }
+        .rocket-color { color: #8c3494; }
+        .upay-color { color: #00adef; }
+        .nav-fixed { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; padding: 10px 0; z-index: 100; }
+        .hidden { display: none; }
+        .method-card { border: 2px solid #f1f5f9; border-radius: 15px; padding: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .method-card.active { border-color: #006a4e; background: #f0fdf4; }
+        .select-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div id="home-page">
+        <div class="header-bg pt-10 pb-16 px-6 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center border border-white/30">
+                    <i class="fas fa-user text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-lg leading-tight">স্বাগতম, ইউজার</h2>
+                    <p class="text-[10px] opacity-80">01XXXXXXXXX | পার্সোনাল অ্যাকাউন্ট</p>
+                </div>
+            </div>
+            <button onclick="toggleBal()" class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-bold transition active:scale-95">
+                ৳ <span id="bal-amount">ব্যালেন্স দেখুন</span>
+            </button>
+        </div>
+
+        <div class="px-5 -mt-8">
+            <div class="card-white p-5 grid grid-cols-4 gap-3 text-center">
+                <div onclick="showPage('add-money-page')">
+                    <i class="fas fa-wallet text-2xl text-purple-600 mb-1"></i>
+                    <p class="text-[10px] font-bold">Add Money</p>
+                </div>
+                <div onclick="alert('ব্যাংক অ্যাড শীঘ্রই আসছে')">
+                    <i class="fas fa-university text-2xl text-amber-600 mb-1"></i>
+                    <p class="text-[10px] font-bold">Bank Add</p>
+                </div>
+                <div onclick="alert('ড্রাইভ প্যাক শীঘ্রই আসছে')">
+                    <i class="fas fa-gift text-2xl text-pink-600 mb-1"></i>
+                    <p class="text-[10px] font-bold">Drive Pack</p>
+                </div>
+                <div onclick="showPage('transfer-page', 'Recharge')">
+                    <i class="fas fa-mobile-alt text-2xl text-blue-600 mb-1"></i>
+                    <p class="text-[10px] font-bold">Recharge</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 mt-8">
+            <h3 class="text-sm font-bold text-gray-700 mb-4 border-l-4 border-green-700 pl-2">Mobile Banking</h3>
+            <div class="grid grid-cols-4 gap-4">
+                <div onclick="showPage('transfer-page', 'bKash')" class="text-center">
+                    <div class="icon-box"><i class="fas fa-bold bkash-color"></i></div>
+                    <p class="text-[11px] font-bold">bKash</p>
+                </div>
+                <div onclick="showPage('transfer-page', 'Nagad')" class="text-center">
+                    <div class="icon-box"><i class="fas fa-n nagad-color"></i></div>
+                    <p class="text-[11px] font-bold">Nagad</p>
+                </div>
+                <div onclick="showPage('transfer-page', 'Rocket')" class="text-center">
+                    <div class="icon-box"><i class="fas fa-rocket rocket-color"></i></div>
+                    <p class="text-[11px] font-bold">Rocket</p>
+                </div>
+                <div onclick="showPage('transfer-page', 'Upay')" class="text-center">
+                    <div class="icon-box"><i class="fas fa-u upay-color"></i></div>
+                    <p class="text-[11px] font-bold">Upay</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-money-page" class="hidden p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <i onclick="showPage('home-page')" class="fas fa-chevron-left text-xl cursor-pointer text-gray-700"></i>
+            <h2 class="text-xl font-bold">Add Money</h2>
+        </div>
+        <p class="text-xs font-bold text-gray-500 mb-3 uppercase">পেমেন্ট মেথড বেছে নিন</p>
+        <div class="grid grid-cols-4 gap-2 mb-6">
+            <div class="method-card active" onclick="selectMethod('bKash')"><i class="fas fa-bold bkash-color text-xl"></i><p class="text-[9px] mt-1">bKash</p></div>
+            <div class="method-card" onclick="selectMethod('Nagad')"><i class="fas fa-n nagad-color text-xl"></i><p class="text-[9px] mt-1">Nagad</p></div>
+            <div class="method-card" onclick="selectMethod('Rocket')"><i class="fas fa-rocket rocket-color text-xl"></i><p class="text-[9px] mt-1">Rocket</p></div>
+            <div class="method-card" onclick="selectMethod('Upay')"><i class="fas fa-u upay-color text-xl"></i><p class="text-[9px] mt-1">Upay</p></div>
+        </div>
+        <div class="bg-green-50 p-6 rounded-2xl border-2 border-dashed border-green-200 text-center mb-6">
+            <p id="method-label" class="text-[10px] font-bold text-green-700 mb-1">বিকাশ পার্সোনাল অফিশিয়াল নাম্বার</p>
+            <h3 class="text-2xl font-black text-gray-800">01921790792</h3>
+        </div>
+        <input type="number" id="dep-amount" placeholder="টাকার পরিমাণ (৳)" class="w-full p-4 bg-white border rounded-xl mb-4 outline-none">
+        <input type="text" id="dep-trx" placeholder="ট্রানজেকশন আইডি (TrxID)" class="w-full p-4 bg-white border rounded-xl mb-6 outline-none">
+        <button onclick="sendDeposit()" class="w-full bg-[#006a4e] text-white py-4 rounded-xl font-bold shadow-lg">Submit Request</button>
+    </div>
+
+    <div id="transfer-page" class="hidden p-6">
+        <div class="flex items-center gap-4 mb-8"><i onclick="showPage('home-page')" class="fas fa-chevron-left text-xl cursor-pointer"></i><h2 id="page-title" class="text-xl font-bold">লেনদেন</h2></div>
+        
+        <div id="type-selector-box" class="mb-4">
+            <p class="text-xs font-bold text-gray-500 mb-2 uppercase">উত্তোলনের ধরণ</p>
+            <select id="withdraw-type" class="w-full p-4 bg-white border rounded-xl outline-none select-input font-bold text-gray-700">
+                <option value="Send Money">Send Money (সেন্ট মানি)</option>
+                <option value="Cash Out">Cash Out (ক্যাশ আউট)</option>
+            </select>
+        </div>
+
+        <input type="number" id="trans-num" placeholder="মোবাইল নম্বর" class="w-full p-4 bg-white border rounded-xl mb-4 outline-none">
+        <input type="number" id="trans-amount" placeholder="পরিমাণ" class="w-full p-4 bg-white border rounded-xl mb-6 outline-none">
+        <button onclick="done('Withdraw')" class="w-full bg-[#006a4e] text-white py-4 rounded-xl font-bold transition active:scale-95 shadow-md">নিশ্চিত করুন</button>
+    </div>
+
+    <div class="nav-fixed">
+        <div onclick="showPage('home-page')" class="flex-1 text-center text-green-700"><i class="fas fa-home text-xl"></i><p class="text-[10px] font-bold">হোম</p></div>
+        <div onclick="alert('হিস্ট্রি খালি')" class="flex-1 text-center text-gray-400"><i class="fas fa-clock-rotate-left text-xl"></i><p class="text-[10px] font-bold">হিস্ট্রি</p></div>
+        <div onclick="window.location.href='https://wa.me/8801339061938'" class="flex-1 text-center text-gray-400"><i class="fas fa-headset text-xl"></i><p class="text-[10px] font-bold">সাপোর্ট</p></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOLCQrVUk189GzET3kE1i9Z60Hy0P2nGU",
+            authDomain: "bd-pay-2689c.firebaseapp.com",
+            databaseURL: "https://bd-pay-2689c-default-rtdb.firebaseio.com",
+            projectId: "bd-pay-2689c",
+            storageBucket: "bd-pay-2689c.firebasestorage.app",
+            messagingSenderId: "214027060501",
+            appId: "1:214027060501:web:ea205df2b59122a9efd51c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentMethod = "";
+
+        function toggleBal() {
+            const el = document.getElementById('bal-amount');
+            el.innerText = "৫,২৫০.০০ ৳";
+            setTimeout(() => { el.innerText = "ব্যালেন্স দেখুন"; }, 3000);
+        }
+
+        function showPage(pageId, title = "") {
+            document.querySelectorAll('body > div:not(.nav-fixed)').forEach(d => d.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+            
+            if(pageId === 'transfer-page') {
+                document.getElementById('page-title').innerText = title;
+                currentMethod = title;
+                const selector = document.getElementById('type-selector-box');
+                if(title === "Recharge") selector.classList.add('hidden');
+                else selector.classList.remove('hidden');
+            }
+            window.scrollTo(0,0);
+        }
+
+        function selectMethod(name) {
+            document.getElementById('method-label').innerText = name + " পার্সোনাল অফিশিয়াল নাম্বার";
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function sendDeposit() {
+            const amt = document.getElementById('dep-amount').value;
+            const trx = document.getElementById('dep-trx').value;
+            if(!amt || !trx) return alert("সব ঘর পূরণ করুন");
+
+            db.ref('requests').push({
+                type: "Deposit",
+                amount: amt,
+                info: trx,
+                time: new Date().toLocaleString()
+            });
+            alert("অ্যাড মানি রিকোয়েস্ট সফল হয়েছে!");
+            showPage('home-page');
+        }
+
+        function done(type) {
+            const amt = document.getElementById('trans-amount').value;
+            let info = document.getElementById('trans-num').value;
+            const withdrawType = document.getElementById('withdraw-type').value;
+
+            if(!amt || !info) return alert("সব ঘর পূরণ করুন");
+
+            let finalType = currentMethod;
+            if(currentMethod !== "Recharge") {
+                info = info + " (" + withdrawType + ")";
+            }
+            
+            db.ref('requests').push({
+                type: finalType,
+                amount: amt,
+                info: info,
+                time: new Date().toLocaleString()
+            });
+            alert(finalType + " রিকোয়েস্ট সফল হয়েছে!");
+            showPage('home-page');
+        }
+    </script>
+</body>
+</html>

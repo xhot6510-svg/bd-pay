@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP Farming - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Arial', sans-serif; }
+        .admin-card { background: white; padding: 20px; border-radius: 12px; shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="login-section" class="max-w-md mx-auto mt-20 p-6 bg-white rounded-xl shadow-lg">
+    <h2 class="text-2xl font-bold mb-4 text-center">Admin Login</h2>
+    <input type="password" id="admin-pass" placeholder="পাসওয়ার্ড দিন" class="w-full p-2 border rounded mb-4">
+    <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded font-bold">প্রবেশ করুন</button>
+</div>
+
+<div id="admin-dashboard" class="hidden max-w-4xl mx-auto p-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-green-700">TP Farming Admin</h1>
+        <button onclick="logout()" class="bg-red-500 text-white px-4 py-1 rounded">Logout</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6 text-center">
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500">Total Users</p>
+            <h3 id="total-users" class="text-xl font-bold text-blue-600">0</h3>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <p class="text-gray-500">Total Balance</p>
+            <h3 id="total-balance" class="text-xl font-bold text-green-600">৳0</h3>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h2 class="text-xl font-bold mb-4 border-b pb-2 text-blue-600">Pending Deposits</h2>
+        <div id="deposit-list" class="space-y-4">
+            </div>
+    </div>
+
+    <div class="admin-card">
+        <h2 class="text-xl font-bold mb-4 border-b pb-2 text-orange-600">Pending Withdraws</h2>
+        <div id="withdraw-list" class="space-y-4">
+            </div>
+    </div>
+</div>
+
+<script>
+    const ADMIN_PASS = "pops123";
+
+    function login() {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === ADMIN_PASS) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+            loadData();
+        } else {
+            alert("ভুল পাসওয়ার্ড!");
+        }
+    }
+
+    function logout() {
+        location.reload();
+    }
+
+    function loadData() {
+        const users = JSON.parse(localStorage.getItem('users')) || {};
+        const userKeys = Object.keys(users);
+        document.getElementById('total-users').innerText = userKeys.length;
+        
+        let totalVal = 0;
+        userKeys.forEach(k => totalVal += (users[k].balance || 0));
+        document.getElementById('total-balance').innerText = "৳" + totalVal;
+
+        renderDeposits(users);
+        renderWithdraws(users);
+    }
+
+    function renderDeposits(users) {
+        const list = document.getElementById('deposit-list');
+        list.innerHTML = "";
+        Object.keys(users).forEach(phone => {
+            const user = users[phone];
+            if(user.pendingDeposit > 0) {
+                list.innerHTML += `
+                    <div class="flex justify-between items-center p-3 border rounded bg-blue-50">
+                        <div>
+                            <p><b>User:</b> ${phone}</p>
+                            <p><b>Amount:</b> ৳${user.pendingDeposit}</p>
+                            <p class="text-xs text-gray-500">Method: ${user.lastDepositMethod}</p>
+                        </div>
+                        <div class="space-x-2">
+                            <button onclick="approveDeposit('${phone}')" class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">Approve</button>
+                            <button onclick="cancelAction('${phone}', 'deposit')" class="bg-gray-400 text-white px-3 py-1 rounded text-sm">X</button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        if(list.innerHTML === "") list.innerHTML = "<p class='text-gray-400 text-center'>No pending deposits</p>";
+    }
+
+    function renderWithdraws(users) {
+        const list = document.getElementById('withdraw-list');
+        list.innerHTML = "";
+        Object.keys(users).forEach(phone => {
+            const user = users[phone];
+            if(user.pendingWithdraw > 0) {
+                list.innerHTML += `
+                    <div class="flex justify-between items-center p-3 border rounded bg-orange-50">
+                        <div>
+                            <p><b>User:</b> ${phone}</p>
+                            <p><b>Amount:</b> ৳${user.pendingWithdraw}</p>
+                            <p class="text-xs text-gray-500">To: ${user.withdrawNumber} (${user.withdrawMethod})</p>
+                        </div>
+                        <div class="space-x-2">
+                            <button onclick="approveWithdraw('${phone}')" class="bg-orange-500 text-white px-3 py-1 rounded text-sm font-bold">Paid</button>
+                            <button onclick="cancelAction('${phone}', 'withdraw')" class="bg-gray-400 text-white px-3 py-1 rounded text-sm">X</button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        if(list.innerHTML === "") list.innerHTML = "<p class='text-gray-400 text-center'>No pending withdraws</p>";
+    }
+
+    function approveDeposit(phone) {
+        let users = JSON.parse(localStorage.getItem('users'));
+        users[phone].balance += users[phone].pendingDeposit;
+        users[phone].pendingDeposit = 0;
+        localStorage.setItem('users', JSON.stringify(users));
+        alert("ডিপোজিট সফলভাবে অ্যাপ্রুভ হয়েছে!");
+        loadData();
+    }
+
+    function approveWithdraw(phone) {
+        let users = JSON.parse(localStorage.getItem('users'));
+        users[phone].pendingWithdraw = 0;
+        localStorage.setItem('users', JSON.stringify(users));
+        alert("উইথড্র সম্পন্ন হয়েছে!");
+        loadData();
+    }
+
+    function cancelAction(phone, type) {
+        let users = JSON.parse(localStorage.getItem('users'));
+        if(type === 'deposit') users[phone].pendingDeposit = 0;
+        else {
+            users[phone].balance += users[phone].pendingWithdraw;
+            users[phone].pendingWithdraw = 0;
+        }
+        localStorage.setItem('users', JSON.stringify(users));
+        loadData();
+    }
+</script>
+
+</body>
+</html>
